@@ -6,14 +6,14 @@
 #include "TcpServer.h"
 #include "ThreadPool.h"
 
-//最大客户端数量
+// 最大客户端数量
 #define MAXNUM 10
 
 using namespace std;
 
 struct SockInfo
 {
-    TcpSocket *tcp;
+    SocketForward::TcpSocket *tcp;
     struct sockaddr_in addr;
 };
 
@@ -21,7 +21,7 @@ std::mutex info_array_mutex;
 int current_num = 0;
 struct SockInfo *info_array[MAXNUM];
 
-void publish(const char *data, int data_len, SockInfo *except_info)
+void publish(void *data, unsigned long data_len, SockInfo *except_info)
 {
     info_array_mutex.lock();
     for (int i = 0; i < current_num; i++)
@@ -47,11 +47,10 @@ void *working(void *arg)
     // 5. 通信
     while (true)
     {
-        string msg = pinfo->tcp->recv_msg();
-        if (!msg.empty()) cout << msg << endl << endl;
-        else break;
-        //广播数据
-        publish(msg.c_str(), msg.length(), pinfo);
+        // 接收数据
+        SocketForward::Data data = pinfo->tcp->recv_msg();
+        // 广播数据
+        publish(data.buffer, data.length, pinfo);
     }
     delete pinfo->tcp;
     delete pinfo;
@@ -70,7 +69,7 @@ int main()
     while (true)
     {
         SockInfo *info = new SockInfo;
-        TcpSocket *tcp = server.acceptConn(&info->addr);
+        SocketForward::TcpSocket *tcp = server.acceptConn(&info->addr);
         if (tcp == nullptr)
         {
             cout << "重试...." << endl;
@@ -87,8 +86,6 @@ int main()
         info->tcp = tcp;
         thread_pool->enqueue(working, info);
         // 5. 更新客户端数组
-        // TODO: 这里是否真的需要加锁？其他地方应该是不会修改这个东西的
-        //  不过后面肯定要判断客户端的退出，到时候必然要修改
         info_array_mutex.lock();
         info_array[current_num++] = info;
         info_array_mutex.unlock();

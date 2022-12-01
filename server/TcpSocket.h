@@ -3,27 +3,48 @@
 
 #include <string>
 
-class TcpSocket
+namespace SocketForward
 {
-public:
-    TcpSocket();
+    // 数据报
+    typedef struct Datagram
+    {
+        // 数据的长度
+        unsigned long length;
+        // 保存的数据
+        unsigned char buffer[BUFSIZ];
+    } Datagram;
 
-    TcpSocket(int socket);
+    // 长数据
+    typedef struct Data
+    {
+        // 长度
+        unsigned long length;
+        // 内容
+        unsigned char *buffer;
+    } Data;
 
-    ~TcpSocket();
+    class TcpSocket
+    {
+    public:
+        TcpSocket();
 
-    int connect_host(std::string ip, unsigned short port);
+        TcpSocket(int socket);
 
-    //TODO: 需要修改成循环发送大文件的函数！
-    int send_msg(const char *msg, int msg_len) const;
+        ~TcpSocket();
 
-    //TODO: 需要求改成循环接收大文件的函数！
-    char *recv_msg();
+        int connect_host(std::string ip, unsigned short port);
 
-private:
-    int m_fd; // 通信的套接字
-    char buffer[BUFSIZ]; // 通信的缓存
-};
+        void send_msg(void *msg, unsigned long msg_len) const;
 
+        Data recv_msg() const;
 
+    private:
+        Data loop_recv(unsigned long loop_num) const;
+
+    private:
+        // 通信的套接字
+        int m_fd;
+    };
+
+}
 #endif //SOCKET_FORWARD_TCPSOCKET_H

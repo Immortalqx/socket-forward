@@ -35,12 +35,12 @@ int TcpServer::setListen(unsigned short port)
         perror("listen failed");
         return -1;
     }
-//    std::cout << "设置监听成功..." << std::endl;
+    std::cout << "设置监听成功..." << std::endl;
 
     return ret;
 }
 
-TcpSocket *TcpServer::acceptConn(sockaddr_in *addr)
+SocketForward::TcpSocket *TcpServer::acceptConn(sockaddr_in *addr)
 {
     if (addr == nullptr)
     {
@@ -57,5 +57,5 @@ TcpSocket *TcpServer::acceptConn(sockaddr_in *addr)
 
 //    printf("成功和客户端建立连接...\n");
 
-    return new TcpSocket(cfd);
+    return new SocketForward::TcpSocket(cfd);
 }
