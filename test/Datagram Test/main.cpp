@@ -2,7 +2,9 @@
 #include <cstring>
 #include <cmath>
 
-#define DATALEN 8
+#include <opencv2/opencv.hpp>
+
+#define DATALEN 1024
 
 // 数据报
 typedef struct Datagram
@@ -11,6 +13,8 @@ typedef struct Datagram
     bool is_end;
     // 保存的数据
     // NOTE: 这里+1是为了存放'\0'，测试发现如果不这么做，DATALEN取某些值时，recv接受的数据会混乱！
+    // FIXME: 这里使用char会导致image图像传输受损（应该是溢出了），但是使用unsigned char也不能够完全解决问题！
+    //  这里如何处理呢？如何把数据当成二进制来传输？？使用byte[]可以吗？？？
     char buffer[DATALEN + 1];
 } Datagram;
 
@@ -24,13 +28,14 @@ typedef struct DatagramArray
 } DatagramArray;
 
 // 输出数据报数组
-void print_datagram(DatagramArray datagramArray)
+void print_datagram(DatagramArray datagramArray, bool show_buffer = true)
 {
     for (int i = 0; i < datagramArray.length; i++)
     {
         std::cout << "Datagram: " << i << std::endl <<
-                  "is_end:\t" << std::boolalpha << datagramArray.datagram[i].is_end << std::endl <<
-                  "buffer:\t" << datagramArray.datagram[i].buffer << std::endl << std::endl;
+                  "is_end:\t" << std::boolalpha << datagramArray.datagram[i].is_end << std::endl;
+        if (show_buffer)
+            std::cout << "buffer:\t" << datagramArray.datagram[i].buffer << std::endl;
     }
 }
 
@@ -150,15 +155,23 @@ void str_test()
 
 void image_test()
 {
-    //TODO
+    cv::Mat image = cv::imread("../image.png");
+    DatagramArray array = send_test(image.data);
+    //print_datagram(array, false);
+
+    char *data = (char *) recv_test(array);
+
+    cv::Mat result = cv::Mat(image.rows, image.cols, CV_8UC3, data, 0);
+    cv::imshow("result", result);
+    cv::waitKey(0);
 }
 
 int main()
 {
-    std::cout << "================realloc test================\n";
-    realloc_test();
-    std::cout << "================string test================\n";
-    str_test();
+//    std::cout << "================realloc test================\n";
+//    realloc_test();
+//    std::cout << "================string test================\n";
+//    str_test();
     std::cout << "================image test================\n";
     image_test();
 
