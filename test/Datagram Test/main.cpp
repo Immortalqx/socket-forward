@@ -37,11 +37,11 @@ void print_datagram(DatagramArray datagramArray)
 // 循环发布测试
 // TEST: 把data存入Datagram数组中
 // NOTE: 在实际情况下，send是一个一个发送数据报，也知道数据的长度，所以输出数据报数组即可！
-DatagramArray send_test(const char *data)
+DatagramArray send_test(void *data)
 {
-    // 字符串总长
-    int length = strlen(data);
-    // 已经处理的字符串长度
+    // 数据总长度
+    int length = strlen((char *) data);
+    // 已经处理的数据长度
     int current_len = 0;
     // 数据报的长度
     int data_len = ceil(length * 1.0 / DATALEN);
@@ -59,7 +59,7 @@ DatagramArray send_test(const char *data)
         // 打包数据
         int j = 0;
         for (; j < std::min(DATALEN, length - current_len); j++)
-            datagram[i].buffer[j] = data[current_len + j];
+            datagram[i].buffer[j] = ((char *) data)[current_len + j];
         datagram[i].buffer[j] = '\0';
         current_len += j;
     }
@@ -73,7 +73,7 @@ DatagramArray send_test(const char *data)
 // 循环读取测试
 // TEST: 从datagram数组中读取出char数组
 // NOTE: recv是一个一个接收数据报，这里要模拟不知道最终数据长度的情况！
-char *recv_test(DatagramArray array)
+void *recv_test(DatagramArray array)
 {
     // 声明数组
     char *result = nullptr;
@@ -119,7 +119,7 @@ char *recv_test(DatagramArray array)
     std::cout << result_len << std::endl;
     std::cout << result << std::endl << std::endl;
 
-    for (int t = 0; t < 10; t++)
+    for (int t = 0; t < 3; t++)
     {
         result_len += DATALEN;
         result = (char *) realloc(result, result_len);
@@ -134,16 +134,33 @@ char *recv_test(DatagramArray array)
     }
 }
 
-int main()
+void str_test()
 {
     char buffer[BUFSIZ];
+
+    std::cout << "输入一段字符串开始测试：" << std::endl;
     std::cin >> buffer;
 
     DatagramArray array = send_test(buffer);
     print_datagram(array);
 
-    char *result = recv_test(array);
+    char *result = (char *) recv_test(array);
     std::cout << result << std::endl;
+}
+
+void image_test()
+{
+    //TODO
+}
+
+int main()
+{
+    std::cout << "================realloc test================\n";
+    realloc_test();
+    std::cout << "================string test================\n";
+    str_test();
+    std::cout << "================image test================\n";
+    image_test();
 
     return 0;
 }
