@@ -4,7 +4,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#define DATALEN 1024
+#define DATALEN 3
 
 // 数据报
 typedef struct Datagram
@@ -139,12 +139,33 @@ void image_test()
     cv::waitKey(0);
 }
 
+void stoi_test()
+{
+    char buffer[BUFSIZ];
+    std::cin >> buffer;
+
+    // 数据报的长度
+    int data_len = ceil((double) strlen(buffer) / DATALEN);
+    // 数据报文的数目
+    std::string top_len = std::to_string(data_len);
+    // 输出最初的字符串
+    std::cout << top_len.c_str() << "\t" << top_len.size() << std::endl;
+    // 模拟被接收到
+    memcpy(buffer, top_len.c_str(), top_len.size());
+    buffer[top_len.size()] = '\0';//这一步非常重要！
+    std::cout << buffer << std::endl;
+    // 模拟处理成int
+    std::string loop_num = buffer;
+    std::cout << loop_num << "\t" << std::stoi(loop_num) << std::endl;
+}
+
 int main()
 {
-    std::cout << "================string test================\n";
-    str_test();
-    std::cout << "================image test================\n";
-    image_test();
-
+//    std::cout << "================string test================\n";
+//    str_test();
+//    std::cout << "================image test================\n";
+//    image_test();
+    while (true)
+        stoi_test();
     return 0;
 }
