@@ -31,13 +31,17 @@ int to_int(SocketForward::Data data)
         std::string col = std::to_string(image.cols);
         tcp.send_msg((void *) col.c_str(), col.size());// 话说这里为什么要强制类型转化，是不是有问题？
         usleep(5000);
+
+        // PRINT TEST
+        std::cout << "send image:\n" <<
+                  "row:\t" << row << "\t col:\t" << col << std::endl;
+
         // 发送图像的data
         tcp.send_msg(image.data, image.rows * image.cols * 3);
         usleep(10000);
 
         // PRINT TEST
-        std::cout << "send image:\n" <<
-                  "row:\t" << row << "\t col:\t" << col << std::endl;
+        std::cout << "send image finished" << std::endl;
     }
 }
 
