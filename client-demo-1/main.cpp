@@ -30,16 +30,6 @@
     }
 }
 
-void send_image(const SocketForward::TcpSocket &tcp)
-{
-
-}
-
-void recv_image(const SocketForward::TcpSocket &tcp)
-{
-
-}
-
 int main()
 {
     // 1. 创建通信的套接字
@@ -60,11 +50,9 @@ int main()
     if (pid > 0)// 父进程发送数据
     {
         send_string(tcp);
-//        send_image(tcp);
     } else if (pid == 0)// 子进程接收数据
     {
         recv_string(tcp);
-//        recv_image(tcp);
     } else
     {
         printf("Fail to call fork()\n");
