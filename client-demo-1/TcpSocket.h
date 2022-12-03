@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define DATALEN 8
+#define DATALEN BUFSIZ
 
 namespace SocketForward
 {

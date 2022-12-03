@@ -80,7 +80,7 @@ namespace SocketForward
 //            std::cout << "send datagram " << i << " :\t" << datagram[i].buffer << std::endl;
 
             send(m_fd, datagram[i].buffer, datagram[i].length, 0);
-            usleep(3000);
+//            usleep(3000);
         }
     }
 
