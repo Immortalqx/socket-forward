@@ -9,8 +9,6 @@
 // 最大客户端数量
 #define MAXNUM 10
 
-using namespace std;
-
 struct SockInfo
 {
     SocketForward::TcpSocket *tcp;
@@ -34,9 +32,9 @@ void publish(void *data, unsigned long data_len, SockInfo *except_info)
     info_array_mutex.unlock();
 }
 
-void *working(void *arg)
+[[noreturn]] void *working(void *arg)
 {
-    SockInfo *pinfo = static_cast<struct SockInfo *>(arg);
+    auto pinfo = static_cast<struct SockInfo *>(arg);
 
     // 连接建立成功, 打印客户端的IP和端口信息
     char ip[32];
@@ -44,23 +42,24 @@ void *working(void *arg)
            inet_ntop(AF_INET, &pinfo->addr.sin_addr.s_addr, ip, sizeof(ip)),
            ntohs(pinfo->addr.sin_port));
 
+    SocketForward::Data data;
     // 5. 通信
     while (true)
     {
         // 接收数据
-        SocketForward::Data data = pinfo->tcp->recv_msg();
+        data = pinfo->tcp->recv_msg();
         // 广播数据
         publish(data.buffer, data.length, pinfo);
     }
-    delete pinfo->tcp;
-    delete pinfo;
-    return nullptr;
+//    delete pinfo->tcp;
+//    delete pinfo;
+//    return nullptr;
 }
 
 int main()
 {
     // 0. 创建线程池
-    ThreadPool *thread_pool = new ThreadPool(MAXNUM);
+    auto thread_pool = new ThreadPool(MAXNUM);
     // 1. 创建监听的套接字
     TcpServer server;
     // 2. 绑定本地的IP port并设置监听
@@ -68,18 +67,18 @@ int main()
     // 3. 阻塞并等待客户端的连接
     while (true)
     {
-        SockInfo *info = new SockInfo;
+        auto info = new SockInfo;
         SocketForward::TcpSocket *tcp = server.acceptConn(&info->addr);
         if (tcp == nullptr)
         {
-            cout << "重试...." << endl;
-            usleep(1);
+            std::cout << "重试...." << std::endl;
+            sleep(1);
             continue;
         }
         if (current_num > 9)
         {
-            cout << "到达最大连接数量...." << endl;
-            usleep(10);
+            std::cout << "到达最大连接数量...." << std::endl;
+            sleep(10);
             continue;
         }
         // 4. 创建子线程处理数据

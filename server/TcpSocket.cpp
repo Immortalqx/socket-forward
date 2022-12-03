@@ -47,7 +47,7 @@ namespace SocketForward
         // 已经处理的数据长度
         unsigned long current_len = 0;
         // 数据报的长度
-        int data_len = ceil((double) msg_len / BUFSIZ);
+        int data_len = ceil((double) msg_len / DATALEN);
         // 数据报数组
         auto datagram = new Datagram[data_len];
 
@@ -55,7 +55,7 @@ namespace SocketForward
         for (int i = 0; i < data_len; i++)
         {
             // 打包数据
-            datagram[i].length = std::min((unsigned long) BUFSIZ, msg_len - current_len);
+            datagram[i].length = std::min((unsigned long) DATALEN, msg_len - current_len);
             for (unsigned long j = 0; j < datagram[i].length; j++)
                 datagram[i].buffer[j] = ((unsigned char *) msg)[current_len + j];
             current_len += datagram[i].length;
@@ -64,9 +64,24 @@ namespace SocketForward
         // 首先发送数据报文的数目
         std::string top_len = std::to_string(data_len);
         send(m_fd, top_len.c_str(), top_len.size(), 0);
+        usleep(5000);
+
+//        // PRINT TEST
+//        std::cout << "send first datagram:\n" <<
+//                  "data_len:\t" << data_len <<
+//                  "\t to string:\t" << top_len <<
+//                  "\t to c_str:\t" << top_len.c_str() <<
+//                  "\t size:\t" << top_len.size() << std::endl;
+
         // 再逐一发送接下来的报文
         for (int i = 0; i < data_len; i++)
+        {
+//            // PRINT TEST
+//            std::cout << "send datagram " << i << " :\t" << datagram[i].buffer << std::endl;
+
             send(m_fd, datagram[i].buffer, datagram[i].length, 0);
+            usleep(3000);
+        }
     }
 
     Data TcpSocket::recv_msg() const
@@ -74,10 +89,18 @@ namespace SocketForward
         //接收信息
         std::cout << "receive from client:" << m_fd << std::endl;
         //接收第一个消息，得到数据报文的数目
-        char buffer[BUFSIZ];
-        int len = recv(m_fd, buffer, BUFSIZ, 0);
+        char buffer[DATALEN];
+        int len = recv(m_fd, buffer, DATALEN, 0);
         buffer[len] = '\0';
         std::string loop_num = buffer;
+
+//        // PRINT TEST
+//        std::cout << "recv first datagram:\n" <<
+//                  "buffer:\t" << buffer <<
+//                  "\t len:\t" << len <<
+//                  "\t loop_num:\t" << loop_num <<
+//                  "\t stoi:\t" << std::stoi(loop_num) << std::endl;
+
         //循环接收
         return loop_recv(std::stoi(loop_num));
     }
@@ -95,7 +118,7 @@ namespace SocketForward
         {
             // 接收到一个数据报
             Datagram datagram;
-            datagram.length = recv(m_fd, datagram.buffer, BUFSIZ, 0);
+            datagram.length = recv(m_fd, datagram.buffer, DATALEN, 0);
             // 计算长度
             result_len += datagram.length;
             // 实时扩容

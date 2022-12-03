@@ -3,6 +3,8 @@
 
 #include <string>
 
+#define DATALEN BUFSIZ
+
 namespace SocketForward
 {
     // 数据报
@@ -11,7 +13,7 @@ namespace SocketForward
         // 数据的长度
         unsigned long length;
         // 保存的数据
-        unsigned char buffer[BUFSIZ];
+        unsigned char buffer[DATALEN];
     } Datagram;
 
     // 长数据
